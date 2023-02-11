@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="resources/css/all.min.css">
+    <link rel="stylesheet" href="resources/css/bootstrap.min.css">
+    <style>
+        .flash{
+            animation: flash 5s 2;
+        }
+        @keyframes flash {
+            0% { background: #ff8; }
+            100% { background: #fff;}
+
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar bg-danger navbar-dark ">
+        <div class="container" style="max-width: 600px;">
+            <a href="#" class="navbar-brand">Category Client</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 600px">
+        <div class="input-group mt-4">
+            <input type="text" class="form-control">
+            <button class="btn btn-danger"><i class="fas fa-plus"></i></button>
+        </div>
+        <ul class="list-group"></ul>
+    </div>
+
+    <script>
+        const api = "http://localhost:8000/api";
+        const token="1|ygGIptW3IitAKkEnSmZETN7ZOcsvcR3CosJ7j8ep";
+
+        fetch(`${api}/categories`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            })
+            .then(res => res.json())
+            .then(json => {
+                json.map(category => {
+                    createElement(category);
+                });
+            })
+            .catch(() => console.log("Error fetching data"));
+
+            const createElement = function(category){
+                let li= document.createElement("li");
+                li.classList.add("list-group-item");
+                let span = document.createElement("span");
+                span.textContent = category.name;
+
+                li.appendChild(span);
+
+                let del = document.createElement("a");
+                del.setAttribute("href", "#");
+                del.classList.add("fas", "fa-trash", "text-danger", "float-end");
+                del.onclick = function(){
+                    fetch(`${api}/categories/${category.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+                    li.remove();
+                }
+
+                li.appendChild(del);
+
+                li.ondblclick = function(){
+                    let name = prompt("Enter name", category.name);
+                    if(!name) return false;
+
+                    fetch(`${api}/categories/${category.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'content-type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({name})
+                    });
+
+                    span.textContent = name;
+                    li.classList.add('flash');
+                }
+
+                document.querySelector("ul").appendChild(li);
+            }
+
+            document.querySelector("button").onclick = function(){
+                let name = document.querySelector("input").value;
+                if(!name) return false;
+
+                fetch( ` ${api}/categories`, {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify( {name} ), //to change object{};
+                })
+                .then(res => res.json())
+                .then(category => createElement(category));
+            }
+
+    </script>
+</body>
+</html>
+
+
